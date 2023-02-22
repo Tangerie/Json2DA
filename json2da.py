@@ -7,7 +7,7 @@ import importlib
 import utils
 importlib.reload(utils)
 
-from utils import get_typestr_from_name, str_to_enum, try_get_map_type, as_key_pair, create_linked_asset, try_get_map_value_type
+from utils import str_to_enum, try_get_map_type, as_key_pair, create_linked_asset, try_get_map_value_type
 
 def update_map(m_prop, data, ty):
     v_ty = ty["Value"]

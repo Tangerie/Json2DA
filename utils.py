@@ -13,6 +13,13 @@ def create_linked_asset(data):
     full_path = data["ObjectPath"].split(".")[0] + "." + obj_name
     asset = unreal.load_asset(f"{obj_type}'{full_path}'")
 
+
+
+    if asset is None:
+        tools = unreal.AssetToolsHelpers.get_asset_tools()
+        asset = tools.create_asset(obj_name, "/".join(data["ObjectPath"].split(".")[0].split("/")[:-1]), getattr(unreal, obj_type), unreal.DataAssetFactory())
+        unreal.EditorAssetLibrary.save_loaded_asset(asset, False)
+
     return asset
 
 def get_typestr_from_name(name : str):
