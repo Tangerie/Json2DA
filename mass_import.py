@@ -5,7 +5,7 @@ import json
 import importlib
 import utils
 importlib.reload(utils)
-from utils import apply, create_data_asset_from_str_type, does_asset_exist
+from utils import apply, does_asset_exist, try_create_asset
 
 DIRECTORY = "F:\HL\GearAppearances"
 DIRECTORY_GLOB = f"{DIRECTORY}\**\DA_*.json"
@@ -38,7 +38,7 @@ def load_asset_from_json(filename : str):
             print(f"Skipping {asset_name}")
             return
 
-    asset = create_data_asset_from_str_type(asset_folder, asset_name, asset_type)
+    asset = try_create_asset(asset_folder, asset_name, asset_type)
     apply(asset, asset_data)
     unreal.EditorAssetLibrary.save_loaded_asset(asset, False)
 

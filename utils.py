@@ -2,8 +2,38 @@ import unreal
 import map_types
 import importlib
 importlib.reload(map_types)
-from map_types import MAP_TYPES
+from map_types import MAP_TYPES, FACTORY_MAP
 
+def get_factory_from_class(clazz):
+    for c in clazz.__mro__:
+        if c.__name__ in FACTORY_MAP and len(FACTORY_MAP[c.__name__]) > 0: return FACTORY_MAP[c.__name__]
+
+def create_with_factory(folder, name, clazz, factory_name):
+    tools = unreal.AssetToolsHelpers.get_asset_tools()
+    factory = getattr(unreal, factory_name)()
+    print(factory)
+    return tools.create_asset(name, folder, clazz, factory)
+
+def try_create_asset(folder, name, type_str):
+    if not hasattr(unreal, type_str):
+        unreal.log_error(f"{type_str} does not exist")
+        return
+    
+    clazz = getattr(unreal, type_str)
+    available_factories = get_factory_from_class(clazz)
+
+    if available_factories is None:
+        unreal.log_error(f"{type_str} does not have a factory")
+        return
+
+    for factory_name in available_factories:
+        print(f"Trying {factory_name}")
+        try:
+            asset =  create_with_factory(folder, name, clazz, factory_name)
+            if asset is not None: return asset
+        except Exception as e: unreal.log_error(e)
+
+    return None
 
 def as_key_pair(data):
     return [list(x.items())[0] for x in data]
@@ -11,27 +41,15 @@ def as_key_pair(data):
 def does_asset_exist(folder, name):
     return unreal.EditorAssetLibrary.does_asset_exist(folder + "/" + name)
 
-def create_data_asset_from_str_type(folder, name, type_str):
-    tools = unreal.AssetToolsHelpers.get_asset_tools()
-    asset = tools.create_asset(name, folder, getattr(unreal, type_str), unreal.DataAssetFactory())
-    unreal.EditorAssetLibrary.save_loaded_asset(asset, False)
-    return asset
-
 def create_linked_asset(data):
     obj_type, obj_name = data["ObjectName"].split("'")[:2]
     full_path = data["ObjectPath"].split(".")[0] + "." + obj_name
     asset = unreal.load_asset(f"{obj_type}'{full_path}'")
 
     if asset is None:
-        tools = unreal.AssetToolsHelpers.get_asset_tools()
-
-        if obj_type == "Texture2D":
-            factory = unreal.Texture2DFactoryNew()
-        else:
-            factory = unreal.DataAssetFactory()
-        asset = tools.create_asset(obj_name, "/".join(data["ObjectPath"].split(".")[0].split("/")[:-1]), getattr(unreal, obj_type), factory)
+        asset = try_create_asset(obj_name, "/".join(data["ObjectPath"].split(".")[0].split("/")[:-1]), obj_type)
         print(asset)
-        unreal.EditorAssetLibrary.save_loaded_asset(asset, False)
+        if asset is not None: unreal.EditorAssetLibrary.save_loaded_asset(asset, False)
 
     return asset
 
@@ -124,9 +142,12 @@ def set_editor_property(obj, key, value):
     elif unreal.EnumBase in ty.__mro__:
         obj.set_editor_property(key, str_to_enum(value))
     elif ty is unreal.Map:
-        map_ty = try_get_map_type(obj, key)
-        if map_ty is None: raise Exception("ERROR", key)
-        obj.set_editor_property(key, update_map(prop, value, map_ty))
+        if len(value) > 0:
+            map_ty = try_get_map_type(obj, key)
+            if map_ty is None: 
+                unreal.log_error(f"Map {key} is unknown, leaving blank")
+            else:
+                obj.set_editor_property(key, update_map(prop, value, map_ty))
     elif isinstance(value, dict) and "ObjectName" in value:
         obj.set_editor_property(key, create_linked_asset(value))
     elif unreal.StructBase in ty.__mro__:
