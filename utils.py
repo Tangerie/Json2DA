@@ -47,7 +47,8 @@ def create_linked_asset(data):
     asset = unreal.load_asset(f"{obj_type}'{full_path}'")
 
     if asset is None:
-        asset = try_create_asset(obj_name, "/".join(data["ObjectPath"].split(".")[0].split("/")[:-1]), obj_type)
+        folder = "/".join(data["ObjectPath"].split(".")[0].split("/")[:-1])
+        asset = try_create_asset(folder, obj_name, obj_type)
         print(asset)
         if asset is not None: unreal.EditorAssetLibrary.save_loaded_asset(asset, False)
 
