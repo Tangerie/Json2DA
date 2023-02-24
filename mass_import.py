@@ -7,7 +7,11 @@ import utils
 importlib.reload(utils)
 from utils import apply, does_asset_exist, try_create_asset
 
-DIRECTORY = "F:\HL\GearAppearances"
+# ADD: r before "C:\String\Path" or use double \ to ensure 
+#      that the first character after \ isnt read as unicode. 
+# See: https://stackoverflow.com/a/1347854 for details
+DIRECTORY = r"F:\HL\GearAppearances"
+
 DIRECTORY_GLOB = f"{DIRECTORY}\**\DA_*.json"
 OVERWRITE_EXISTING = False
 OUTPUT_BASE_PATH = "/Game/Data/GearAppearances/"
