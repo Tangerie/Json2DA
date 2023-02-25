@@ -153,6 +153,9 @@ def set_editor_property(obj, key, value):
         obj.set_editor_property(key, create_linked_asset(value))
     elif unreal.StructBase in ty.__mro__:
         apply(prop, value)
+    else:
+        print(f"Unknown Type {ty}")
+    
 
 def apply(asset, data : dict):
     for key in data:

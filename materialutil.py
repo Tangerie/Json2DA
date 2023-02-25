@@ -1,4 +1,5 @@
 import unreal
+import MaterialExpressions
 MEL = unreal.MaterialEditingLibrary
 
 def create_named_parameter(mat, name, ty, x, y):
@@ -13,3 +14,26 @@ def create_parameter_array(mat, name, ty, num, originX = 0, originY = 0, X_SPACE
     ]
     return nodes
 
+def getScalarOutput(node):
+    if isinstance(node, (MaterialExpressions.TextureSampleParameter2D, MaterialExpressions.VectorParameter)):
+        return "R"
+
+    return ""
+    
+
+def connectNodesUntilSingle(mat, _nodes : list):
+    nodes = [*_nodes]
+
+    y = 0
+
+    while len(nodes) > 1:
+        nodeA, nodeB = nodes[:2]
+        nodes = nodes[2:]
+        connector = MEL.create_material_expression(mat, MaterialExpressions.Add, 200, y)
+        MEL.connect_material_expressions(nodeA, getScalarOutput(nodeA), connector, "A")
+        MEL.connect_material_expressions(nodeB, getScalarOutput(nodeB), connector, "B")
+        nodes.append(connector)
+        y += 75
+
+
+    return nodes[0]

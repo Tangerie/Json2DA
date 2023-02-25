@@ -6,11 +6,13 @@ importlib.reload(utils)
 
 from utils import str_to_enum
 
-material_util = unreal.MaterialEditingLibrary
+MEL = unreal.MaterialEditingLibrary
+
+ML_PATH = "MaterialFunctionMaterialLayer'/Game/Tangerie/Materials/Layers/ML_Sample.ML_Sample'"
 
 # override_ty is "scalar" | "vector" | "texture"
 def set_mat_override(asset, override_map, override_ty : str):
-    apply_func = getattr(material_util, f"set_material_instance_{override_ty}_parameter_value") 
+    apply_func = getattr(MEL, f"set_material_instance_{override_ty}_parameter_value") 
     for key, value in override_map.items():
         apply_func(asset, key, value)
 
@@ -21,13 +23,21 @@ def update_mat(mat_params):
     set_mat_override(sel_asset, mat_params.get_editor_property("TextureOverrides"), "texture")
 
 
+    texOverrides = mat_params.get_editor_property("TextureOverrides")
+
+    for texKey, texValue in texOverrides.items():
+        if not str(texKey).startswith("Swatch_MRAB"): continue
+        texValue.set_editor_property("CompressionSettings", unreal.TextureCompressionSettings.TC_MASKS)
+        unreal.EditorAssetLibrary.save_loaded_asset(texValue, True)
+
+
 def main(ga, use_house, house, position):
     asset = unreal.EditorUtilityLibrary.get_selected_assets()[0]
-    material_util.clear_all_material_instance_parameters(asset)
+    MEL.clear_all_material_instance_parameters(asset)
     piece_def = ga.get_editor_property("OutfitItems").get(position)
     update_mat(piece_def.get_editor_property("MaterialParams"))
     if use_house:
         house = str_to_enum(house)
         update_mat(piece_def.get_editor_property("HouseMaterialParams").get(house))
-    material_util.update_material_instance(asset)
+    MEL.update_material_instance(asset)
     unreal.EditorAssetLibrary.save_loaded_asset(asset, False)
