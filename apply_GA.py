@@ -23,14 +23,6 @@ def update_mat(mat_params):
     set_mat_override(sel_asset, mat_params.get_editor_property("TextureOverrides"), "texture")
 
 
-    texOverrides = mat_params.get_editor_property("TextureOverrides")
-
-    for texKey, texValue in texOverrides.items():
-        if not str(texKey).startswith("Swatch_MRAB"): continue
-        texValue.set_editor_property("CompressionSettings", unreal.TextureCompressionSettings.TC_MASKS)
-        unreal.EditorAssetLibrary.save_loaded_asset(texValue, True)
-
-
 def main(ga, use_house, house, position):
     asset = unreal.EditorUtilityLibrary.get_selected_assets()[0]
     MEL.clear_all_material_instance_parameters(asset)
