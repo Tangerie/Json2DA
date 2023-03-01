@@ -1,3 +1,18 @@
+ARRAY_TYPES = {
+    "MeshOverrides": {
+        "Key": "",
+        "Value": "MeshOverride"
+    },
+    "Rules": {
+        "Key": "",
+        "Value": "MeshRule"
+    },
+    "RegionNames": {
+        "Key": "",
+        "Value": "str"
+    }
+}
+
 MAP_TYPES = {
     "GaitTags": {
         "Key": "",
